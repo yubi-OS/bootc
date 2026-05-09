@@ -1,0 +1,3 @@
+# Enable Surface-specific services
+enable iptsd.service
+enable thermald.service

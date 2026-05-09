@@ -1,0 +1,40 @@
+# Surface Pro / Surface Laptop (x86-64) bootc image - Fedora base
+# Uses the linux-surface patched kernel for full hardware support.
+#
+# Build:
+#   podman build --platform linux/amd64 -f Containerfile.fedora -t surface-x86-fedora .
+#
+# Install to disk (Secure Boot disabled first, or enroll ParticleOS cert):
+#   podman run --rm --privileged --pid=host \
+#     -v /dev:/dev -v /var/lib/containers:/var/lib/containers \
+#     surface-x86-fedora bootc install to-disk /dev/nvme0n1
+#
+# Source: linux-surface https://github.com/linux-surface/linux-surface
+# Source: bootc install config - https://bootc-dev.github.io/bootc/install/config/
+
+FROM quay.io/fedora/fedora-bootc:latest
+
+# Add linux-surface COPR for patched kernel (Type Cover, IPTS touchscreen, pen)
+RUN dnf config-manager --add-repo \
+      https://pkg.surfacelinux.com/fedora/linux-surface.repo && \
+    dnf install -y \
+      kernel-surface \
+      iptsd \
+      libwacom-surface \
+      surface-control \
+      thermald \
+      sof-firmware \
+      linux-firmware \
+      tpm2-tools \
+      tpm2-tss \
+      sbctl && \
+    dnf remove -y \
+      kernel kernel-core kernel-modules kernel-modules-core kernel-modules-extra && \
+    dnf clean all
+
+# Overlay Surface-specific bootc config, kargs.d, modprobe, and systemd files
+COPY usr/ /usr/
+
+# Rebuild initramfs for the surface kernel
+RUN kver=$(ls /usr/lib/modules | grep -v $(uname -r) | head -1) && \
+    dracut --force --kver "$kver"
