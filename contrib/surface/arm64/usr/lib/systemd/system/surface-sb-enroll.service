@@ -1,0 +1,23 @@
+# Secure Boot enrollment helper for Surface Laptop 7 (Snapdragon X Elite)
+#
+# Surface UEFI enforces NX (No-Execute) mode in the firmware environment.
+# MokManager freezes (black screen at logo) when Secure Boot key enrollment
+# is triggered via shim. This service avoids MokManager entirely by using sbctl
+# to generate keys and guide the user through direct UEFI db enrollment.
+#
+# bootc uses UKI + systemd-boot with no shim, so MokManager is never invoked.
+# Source: https://github.com/linux-surface/linux-surface/issues/1590
+
+[Unit]
+Description=Surface Secure Boot Key Enrollment (First Boot)
+After=local-fs.target
+ConditionFirstBoot=yes
+ConditionPathExists=!/var/lib/sbctl/guid
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/lib/surface/sb-enroll.sh
+
+[Install]
+WantedBy=first-boot-complete.target
