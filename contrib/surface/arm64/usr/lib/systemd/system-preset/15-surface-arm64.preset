@@ -1,0 +1,4 @@
+# Enable Qualcomm subsystem services and Secure Boot enrollment for Surface Laptop 7
+enable qrtr-ns.service
+enable pd-mapper.service
+enable surface-sb-enroll.service
