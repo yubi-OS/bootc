@@ -1,0 +1,7 @@
+# Persistent kernel arguments for Surface Laptop 7 (Snapdragon X Elite, aarch64)
+# Ships in the container image; applied on install and preserved across upgrades.
+
+kargs = [
+  "clk_ignore_unused",
+  "pd_ignore_unused",
+]
