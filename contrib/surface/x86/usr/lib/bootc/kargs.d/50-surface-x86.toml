@@ -1,0 +1,10 @@
+# Persistent kernel arguments for Microsoft Surface Pro / Surface Laptop (x86-64)
+# Ships in the container image; applied on install and preserved across upgrades.
+# Format: https://github.com/bootc-dev/bootc/tree/main/contrib/packaging/usr-extras/lib/bootc/kargs.d
+
+kargs = [
+  "i915.enable_psr=0",
+  "mem_sleep_default=deep",
+  "button.lid_init_state=open",
+  "acpi_backlight=native",
+]
