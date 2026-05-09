@@ -1,0 +1,17 @@
+# Qualcomm IPC Router Namespace daemon
+# Required for WiFi (ath12k/WCN785x), audio DSP, and modem subsystem IPC.
+# Source: https://github.com/andersson/qrtr
+
+[Unit]
+Description=Qualcomm IPC Router Namespace Daemon
+After=local-fs.target
+Before=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/qrtr-ns
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
