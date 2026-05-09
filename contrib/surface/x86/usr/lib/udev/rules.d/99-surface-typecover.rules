@@ -1,0 +1,2 @@
+# Enable wakeup from suspend via the Surface Type Cover (Microsoft USB vendor 0x045e)
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{power/wakeup}=="disabled", ATTR{power/wakeup}="enabled"
