@@ -1,0 +1,46 @@
+# Surface Laptop 7 (Snapdragon X Elite, aarch64) bootc image - Fedora base
+# Uses upstream Fedora rawhide kernel (includes x1e80100-microsoft-romulus DTBs since 6.12).
+#
+# Build (native aarch64 or cross from x86-64 with QEMU binfmt):
+#   podman build --platform linux/arm64 -f Containerfile.fedora -t surface-arm64 .
+#
+# Install to disk:
+#   podman run --rm --privileged --pid=host \
+#     -v /dev:/dev -v /var/lib/containers:/var/lib/containers \
+#     surface-arm64 bootc install to-disk /dev/nvme0n1
+#
+# Note: tpm2-luks is disabled in the install config (Qualcomm fTPM PCR quirk).
+# Disk encryption requires manual systemd-cryptenroll setup after install.
+#
+# Source: x1e80100 DTBs https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/arch/arm64/boot/dts/qcom/x1e80100-microsoft-romulus13.dts
+# Source: Qualcomm subsystem stack https://github.com/andersson/qrtr https://github.com/andersson/pd-mapper
+
+FROM quay.io/fedora/fedora-bootc:42@sha256:2066df85e559d50753c4faf3dcb692610c3113f0815b8f3e8f0b87358f69dd9c
+
+# Required: signals bootc-compatible image to tooling (bootc container lint, bcvk, bootc-image-builder)
+LABEL containers.bootc=1
+
+# Upstream Fedora rawhide aarch64 kernel includes x1e80100 device trees (romulus13/15).
+# No patched kernel needed - upstream has had Snapdragon X Elite DTBs since 6.12.
+RUN dnf install -y \
+      kernel-core \
+      kernel-modules \
+      kernel-modules-extra \
+      qrtr-tools \
+      pd-mapper \
+      linux-firmware \
+      tpm2-tools \
+      tpm2-tss \
+      sbctl \
+      efivar \
+      efitools && \
+    dnf clean all
+
+# Overlay Surface ARM64-specific bootc config, kargs.d, modprobe, and systemd files
+COPY usr/ /usr/
+
+# Make enrollment script executable
+RUN chmod +x /usr/lib/surface/sb-enroll.sh
+
+# Enable Qualcomm subsystem services and Secure Boot enrollment service via preset
+RUN systemctl preset-all
