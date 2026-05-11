@@ -1,0 +1,18 @@
+# USB4/Thunderbolt authorization service for Surface Laptop 7
+# Uses kernel's default authorized=1 policy set via udev (see udev rule).
+# For stricter security (pre-authorize only), replace with tbtadm.
+# Source: https://github.com/intel/thunderbolt-software-user-space
+
+[Unit]
+Description=USB4/Thunderbolt Security Setup
+After=local-fs.target udev.service
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Apply authorization policy for any already-connected USB4 devices
+ExecStart=/bin/sh -c 'for d in /sys/bus/thunderbolt/devices/*/authorized; do [ -f "$d" ] && echo 1 > "$d" 2>/dev/null || true; done'
+
+[Install]
+WantedBy=multi-user.target
