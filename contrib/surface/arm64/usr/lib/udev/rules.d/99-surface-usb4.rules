@@ -1,0 +1,20 @@
+# USB4/Thunderbolt udev rules for Surface Laptop 7 (Snapdragon X Elite)
+# Surface Laptop 7 uses USB4 (Qualcomm implementation, not Intel Thunderbolt controller).
+# This is standard USB4 v1.0 with DisplayPort Alt Mode and USB Power Delivery.
+#
+# Source: https://www.kernel.org/doc/html/latest/driver-api/usb4.html
+# Source: https://github.com/torvalds/linux/tree/master/drivers/thunderbolt
+
+# Authorize USB4 devices on connect (policy: always authorize, adjust for higher security)
+# SUBSYSTEM="thunderbolt" covers USB4 devices on Qualcomm platforms.
+ACTION=="add", SUBSYSTEM=="thunderbolt", ATTR{authorized}=="0", ATTR{authorized}="1"
+
+# Surface Dock 2 (USB4 hub): ensure drm hotplug fires for DP outputs
+# VID:PID for Surface Dock 2 USB4 controller
+ACTION=="add", SUBSYSTEM=="thunderbolt", ATTRS{vendor_name}=="Microsoft", \
+    RUN+="/bin/sh -c 'echo 1 > /sys/class/drm/*/status'"
+
+# USB-C DisplayPort Alt Mode: wake DRM subsystem on cable plug
+ACTION=="add", SUBSYSTEM=="usb", ATTR{bDeviceClass}=="09", \
+    ENV{ID_USB_INTERFACES}=="*:0e0100:*", \
+    RUN+="/usr/lib/systemd/systemd-udevd --reload-rules"
