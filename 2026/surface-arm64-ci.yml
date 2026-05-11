@@ -1,0 +1,50 @@
+# Surface Laptop 7 arm64 Containerfile build validation
+# Saved to 2026/ per yubi-OS convention (no workflow scope required).
+# Jenny: copy to .github/workflows/ to activate.
+name: surface-arm64 build
+
+on:
+  push:
+    branches: [feature/surface-arm64-snapdragon, feature/surface-arm64-audio]
+    paths: ['contrib/surface/arm64/**']
+  pull_request:
+    branches: [main]
+    paths: ['contrib/surface/arm64/**']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4
+
+      - name: Set up QEMU (arm64 cross-build)
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff9c43a07b67cd1ff5b  # v3
+        with:
+          platforms: arm64
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@b5730b0989851c622c265c3e5b2c4e8ab10c181e  # v3
+
+      - name: Build surface-arm64 (no push)
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c2b685f1dc  # v6
+        with:
+          context: contrib/surface/arm64
+          file: contrib/surface/arm64/Containerfile.fedora
+          platforms: linux/arm64
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+      - name: Lint bootc image
+        if: github.event_name == 'pull_request'
+        run: |
+          docker run --rm \
+            --platform linux/arm64 \
+            --security-opt label=disable \
+            surface-arm64:latest \
+            bootc container lint || true
