@@ -1,0 +1,2 @@
+# USB4 authorization for Surface Laptop 7
+enable surface-usb4.service
