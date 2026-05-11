@@ -1,0 +1,31 @@
+# bootc install configuration for Surface Laptop 7 (Snapdragon X Elite, aarch64)
+# Ships inside the container image; applied during `bootc install to-disk`.
+#
+# Field reference: https://github.com/bootc-dev/bootc/blob/main/crates/lib/src/install/config.rs
+#   match-architectures verified from config.rs Mergeable impl and test_arch() test.
+#   block=["direct"] only: Qualcomm fTPM (firmware TPM) is not available during
+#   early initrd on Snapdragon X Elite, so tpm2-luks PCR enrollment fails at boot.
+#   Source: https://github.com/linux-surface/linux-surface/issues/1590
+
+[install]
+match-architectures = ["aarch64"]
+
+# systemd-boot: Surface ARM64 UEFI is standard EFI (no GRUB needed).
+bootloader = "systemd"
+
+# DPS root discovery - systemd-boot always implements BLI.
+discoverable-partitions = true
+
+# Direct block setup only. tpm2-luks excluded: Qualcomm fTPM unavailable at
+# initrd phase on X Elite, causing PCR binding to fail.
+# See: https://github.com/linux-surface/linux-surface/issues/1590
+block = ["direct"]
+
+# Snapdragon X Elite kernel arguments.
+# clk_ignore_unused  - prevent clk framework disabling unattached clocks during init
+# pd_ignore_unused   - prevent power domain framework pruning unused domains
+# Both are standard Qualcomm bring-up flags used in upstream device trees.
+kargs = [
+  "clk_ignore_unused",
+  "pd_ignore_unused",
+]
