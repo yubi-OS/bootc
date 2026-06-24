@@ -1,0 +1,16 @@
+# Surface Laptop 7 Secure Boot enrollment - runs once on first boot
+# Generates sbctl keys, signs UKIs, exports PK cert for UEFI enrollment.
+# Guarded by ConditionPathExists so it runs only if keys don't already exist.
+
+[Unit]
+Description=Surface Laptop 7 Secure Boot Key Enrollment (first-boot)
+After=local-fs.target
+ConditionPathExists=!/var/lib/sbctl/keys/PK
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/lib/surface/sb-enroll.sh
+
+[Install]
+WantedBy=multi-user.target

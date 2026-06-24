@@ -1,0 +1,35 @@
+# Surface Laptop 7 (Snapdragon X Elite, aarch64) bootc image - Fedora base
+# Includes Qualcomm LPASS/Q6DSP audio support.
+#
+# Build (native aarch64 or cross from x86-64 with QEMU binfmt):
+#   podman build --platform linux/arm64 -f Containerfile.fedora -t surface-arm64 .
+#
+# Install to disk:
+#   podman run --rm --privileged --pid=host \
+#     -v /dev:/dev -v /var/lib/containers:/var/lib/containers \
+#     surface-arm64 bootc install to-disk /dev/nvme0n1
+
+FROM quay.io/fedora/fedora-bootc:42@sha256:2066df85e559d50753c4faf3dcb692610c3113f0815b8f3e8f0b87358f69dd9c
+
+LABEL containers.bootc=1
+
+RUN dnf install -y \
+      kernel-core \
+      kernel-modules \
+      kernel-modules-extra \
+      qrtr-tools \
+      pd-mapper \
+      linux-firmware \
+      tpm2-tools tpm2-tss \
+      sbctl efivar efitools \
+      alsa-utils \
+      alsa-ucm-conf \
+      pipewire \
+      wireplumber \
+      pipewire-pulseaudio && \
+    dnf clean all
+
+COPY usr/ /usr/
+
+RUN chmod +x /usr/lib/surface/sb-enroll.sh
+RUN systemctl preset-all
